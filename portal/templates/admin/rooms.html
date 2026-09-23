@@ -9,62 +9,65 @@
       run the room.
     </h1>
     <div class="btnrow" data-reveal>
-      <a class="btn ghost" href="/staff/projects">projects →</a>
+      <button class="btn" type="button" data-open-setup>room setup →</button>
       <a class="btn ghost" href="/staff/manage/codes">codes / print →</a>
       <a class="btn ghost" href="/staff/manage/export.csv">export csv ↓</a>
       {% if role=='superadmin' %}
         <a class="btn dark" href="/staff/manage/accounts">accounts</a>
-        <a class="btn ghost" href="/staff/manage/audit">audit</a>
       {% endif %}
     </div>
-    <div class="grid cols-2-1" id="rmGrid" style="margin-top:18px">
-      <div class="panel" data-reveal>
-        <h3 class="section-title">rooms ({{ rooms|length }})</h3>
-        <div class="tbl-wrap">
-          <table class="tbl">
+    <div class="panel" style="margin-top:18px" data-reveal>
+      <h3 class="section-title">rooms ({{ rooms|length }})</h3>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <tr>
+            <th>team</th>
+            <th>track</th>
+            <th>room (staff)</th>
+            <th>code</th>
+            <th>status</th>
+            <th></th>
+          </tr>
+          {% for r in rooms %}
             <tr>
-              <th>team</th>
-              <th>track</th>
-              <th>room (staff)</th>
-              <th>code</th>
-              <th>status</th>
-              <th></th>
+              <td>
+                <form method="post" action="/staff/manage/rooms/{{ r.id }}/edit" style="display:flex;gap:6px;flex-wrap:wrap">
+                  <input type="text" name="name" value="{{ r.name }}" style="min-width:140px">
+                  <input type="hidden" name="track" value="{{ r.track }}">
+                  <input type="text" name="room" value="{{ r.room or '' }}" placeholder="lab 2 · table 5" style="min-width:130px">
+                  <button class="btn ghost" style="padding:4px 8px">↺</button>
+                </form>
+              </td>
+              <td>{{ r.track }}</td>
+              <td class="hint">{{ r.room or "-" }}</td>
+              <td>
+                <code class="inline">{{ r.team_code }}</code>
+                <button class="btn ghost" style="padding:2px 8px" data-copy="{{ r.team_code }}">copy</button>
+                <br>
+                <a class="hint" href="/submit/{{ r.team_code }}">editor ↗</a>
+              </td>
+              <td>
+                <span class="tag {% if status_by_room.get(r.id)=='final' %}ok{% else %}warn{% endif %}">
+                  {{ status_by_room.get(r.id,'—') }}
+                </span>
+              </td>
+              <td>
+                <form method="post" action="/staff/manage/rooms/{{ r.id }}/delete" onsubmit="return confirm('nuke room + submission?')">
+                  <button class="btn danger" style="padding:4px 8px">✕</button>
+                </form>
+              </td>
             </tr>
-            {% for r in rooms %}
-              <tr>
-                <td>
-                  <form method="post" action="/staff/manage/rooms/{{ r.id }}/edit" style="display:flex;gap:6px;flex-wrap:wrap">
-                    <input type="text" name="name" value="{{ r.name }}" style="min-width:140px">
-                    <input type="hidden" name="track" value="{{ r.track }}">
-                    <input type="text" name="room" value="{{ r.room or '' }}" placeholder="lab 2 · table 5" style="min-width:130px">
-                    <button class="btn ghost" style="padding:4px 8px">↺</button>
-                  </form>
-                </td>
-                <td>{{ r.track }}</td>
-                <td class="hint">{{ r.room or "-" }}</td>
-                <td>
-                  <code class="inline">{{ r.team_code }}</code>
-                  <button class="btn ghost" style="padding:2px 8px" data-copy="{{ r.team_code }}">copy</button>
-                  <br>
-                  <a class="hint" href="/submit/{{ r.team_code }}">editor ↗</a>
-                </td>
-                <td>
-                  <span class="tag {% if status_by_room.get(r.id)=='final' %}ok{% else %}warn{% endif %}">
-                    {{ status_by_room.get(r.id,'—') }}
-                  </span>
-                </td>
-                <td>
-                  <form method="post" action="/staff/manage/rooms/{{ r.id }}/delete" onsubmit="return confirm('nuke room + submission?')">
-                    <button class="btn danger" style="padding:4px 8px">✕</button>
-                  </form>
-                </td>
-              </tr>
-            {% endfor %}
-          </table>
-        </div>
+          {% endfor %}
+        </table>
       </div>
-      <div class="grid">
-        <form method="post" action="/staff/manage/rooms/new" class="panel" data-reveal>
+    </div>
+    <dialog id="setupDialog" class="setup-dialog" aria-label="room setup">
+      <div class="setup-head">
+        <h1 class="section-title">room setup.</h1>
+        <button class="btn ghost" type="button" data-close-setup aria-label="close">✕</button>
+      </div>
+      <div class="grid cols-1-1 cols-stretch">
+        <form method="post" action="/staff/manage/rooms/new" class="panel">
           <h3 class="section-title">new room + code</h3>
           <label class="f">room / team name</label>
           <input type="text" name="name" required placeholder="eg pixel hawks">
@@ -79,9 +82,9 @@
           <div class="btnrow">
             <button class="btn" type="submit">mint code →</button>
           </div>
-          <p class="hint">codes are random bearer secrets. never listed in public.</p>
+          <p class="hint"></p>
         </form>
-        <form method="post" action="/staff/manage/settings" class="panel" data-reveal>
+        <form method="post" action="/staff/manage/settings" class="panel">
           <h3 class="section-title">tracks + locks</h3>
           <label class="f">tracks (comma separated)</label>
           <input type="text" name="tracks" value="{{ tracks|join(', ') }}">
@@ -92,10 +95,10 @@
           <div class="btnrow">
             <button class="btn dark" type="submit">save settings</button>
           </div>
-          <p class="hint">entered in npt, stored as utc. enforced server-side per group.</p>
+          <p class="hint">entered in npt.</p>
         </form>
       </div>
-    </div>
+    </dialog>
   </div>
 {% endblock %}
 

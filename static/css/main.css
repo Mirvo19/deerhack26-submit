@@ -156,7 +156,7 @@ a {
   font-weight: 700;
   font-size: clamp(34px, 6vw, 72px);
   margin: 0 0 10px;
-  line-height: .95;
+  line-height: 1.05;
 }
 
 .hero h1 .accent {
@@ -181,7 +181,7 @@ a {
   grid-template-columns: .75fr 1.25fr;
   gap: 28px;
   align-items: center;
-  margin-top: 22px;
+  margin-top: 12px;
 }
 
 .hero-art {
@@ -221,6 +221,64 @@ a {
 .cols-1-1 {
   grid-template-columns: 1fr 1fr;
   align-items: start;
+}
+
+.cols-stretch {
+  align-items: stretch;
+}
+
+.cols-stretch > .panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.setup-dialog {
+  border: 2px solid var(--dh-black);
+  border-radius: var(--dh-radius);
+  padding: 24px;
+  width: min(960px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  background: var(--dh-paper);
+  color: var(--dh-black);
+}
+
+.setup-dialog::backdrop {
+  background: rgba(18, 18, 18, .6);
+}
+
+.setup-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.setup-head .section-title {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .setup-dialog {
+    padding: 16px;
+    width: calc(100vw - 24px);
+  }
+}
+
+.cols-stretch .btnrow {
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.setup-wrap {
+  max-width: 720px;
+}
+
+@media (min-width: 1024px) {
+  .setup-wrap {
+    max-width: 960px;
+  }
 }
 
 .tbl-wrap {

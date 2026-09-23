@@ -65,4 +65,40 @@
       .then(function () { warm.hidden = true; })
       .catch(function () { warm.hidden = true; });
   }
+
+  var setupDlg = document.getElementById("setupDialog");
+  var setupOpen = document.querySelector("[data-open-setup]");
+
+  function setupClose() {
+    if (setupDlg) setupDlg.close();
+  }
+
+  if (setupDlg && setupOpen) {
+    setupOpen.addEventListener("click", function () {
+      if (typeof setupDlg.showModal === "function") {
+        setupDlg.showModal();
+      } else {
+        setupDlg.setAttribute("open", "");
+      }
+
+      var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var motion = window.Motion;
+
+      if (!reduced && motion) {
+        motion.animate(
+          setupDlg.querySelectorAll(".panel"),
+          { opacity: [0, 1], y: [12, 0] },
+          { duration: .25, easing: "ease-out", delay: motion.stagger(.06) }
+        );
+      }
+    });
+
+    setupDlg.addEventListener("click", function (e) {
+      if (e.target === setupDlg) setupClose();
+    });
+
+    setupDlg.querySelectorAll("[data-close-setup]").forEach(function (btn) {
+      btn.addEventListener("click", setupClose);
+    });
+  }
 })();
