@@ -26,6 +26,13 @@ body {
   font-family: var(--dh-body);
   font-size: 1rem;
   line-height: 1.55;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
 }
 
 a {
@@ -49,7 +56,7 @@ a {
   align-items: center;
   gap: 14px;
   padding-top: 10px;
-  padding-bottom: 0;
+  padding-bottom: 6px;
 }
 
 .brand {
@@ -164,9 +171,34 @@ a {
 .hero-motif {
   position: absolute;
   right: -10px;
-  top: 0;
+  top: 6px;
   opacity: .9;
   z-index: 1;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: .75fr 1.25fr;
+  gap: 28px;
+  align-items: center;
+  margin-top: 22px;
+}
+
+.hero-art {
+  margin: 0;
+  justify-self: end;
+  width: 100%;
+  max-width: 800px;
+}
+
+.hero-art img {
+  width: 112%;
+  height: 100%;
+  display: block;
+  border: none;
+  border-radius: var(--dh-radius);
+  position: relative;
+  left: 94px;
 }
 
 .pixel-label {
@@ -253,6 +285,15 @@ a {
 
   .cols-2-1 {
     grid-template-columns: 1fr;
+  }
+
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-art img {
+    width: 100%;
+    left: 0;
   }
 
   .hero .wrap {
@@ -484,7 +525,32 @@ a {
 }
 
 .cards {
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  justify-content: center;
+}
+
+.cards-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .cards {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  }
+
+  .cards-3 {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .cards-3 {
+    grid-template-columns: 1fr;
+  }
 }
 
 .card {
@@ -557,6 +623,7 @@ a {
 
 .panel {
   background: var(--dh-white);
+  color: var(--dh-black);
   border: 2px solid var(--dh-black);
   border-radius: var(--dh-radius);
   box-shadow: var(--dh-shadow-sm);
@@ -575,6 +642,10 @@ label.f {
   font-weight: 600;
   font-size: 14px;
   margin: 14px 0 6px;
+}
+
+.panel label.f:first-child {
+  margin-top: 0;
 }
 
 input[type=text],
@@ -659,6 +730,7 @@ fieldset {
 
 .flash {
   border: 2px solid var(--dh-black);
+  color: var(--dh-black);
   padding: 10px 14px;
   margin: 14px 0;
   border-radius: var(--dh-radius);
@@ -752,7 +824,9 @@ table.tbl {
   display: flex;
   gap: 16px;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
+  text-align: center;
 }
 
 .dh-footer .pixel-label {

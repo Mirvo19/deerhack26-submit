@@ -8,31 +8,38 @@
       <path d="M32 32h16v16H32zM48 48h16v16H48zM32 64h16v16H32zM16 64h16v16H16zM0 48h16v16H0zM0 32h16v16H0zM0 16h16v16H0zM16 0h16v16H16zM32 0h16v16H32zM48 0h16v16H48zM64 16h16v16H64zM80 32h16v16H80zM80 48h16v16H80zM96 64h16v16H96zM112 64h16v16h-16zM128 48h16v16h-16zM144 32h16v16h-16zM144 16h16v16h-16zM128 0h16v16h-16zM112 16h16v16h-16z" fill="#58C6C3" />
     </svg>
     <div class="wrap">
-      <p class="pixel-label" data-entrance>room-code entry // no accounts</p>
-      <h1 data-entrance>ship your <span class="accent">project</span>.</h1>
+      <p class="pixel-label" data-entrance></p>
+      <h1 data-entrance>Ship your <span class="accent">project</span>.</h1>
       <p class="lede" data-entrance></p>
       <br>
       <br>
-      <form method="post" action="/enter" class="panel" style="max-width:560px;margin-top:22px" data-entrance data-reveal>
-        <label class="f" for="code">team / room code</label>
+      <div class="hero-grid">
+        <div>
+      <form method="post" action="/enter" class="panel" data-entrance data-reveal>
+        <label class="f" for="code">team code</label>
         <input type="text" id="code" name="team_code" placeholder="eg juniper-fox-27" autocomplete="off" required style="font-family:var(--dh-pixel);letter-spacing:.1em">
         <div class="btnrow">
-          <button class="btn" type="submit">open editor →</button>
+          <button class="btn" type="submit">open form →</button>
         </div>
         {% if error %}
           <p class="flash error">{{ error }}</p>
         {% endif %}
-        <p class="hint">codes are bearer secrets — holder can edit. lost it? ask an organizer, don't guess.</p>
+        <p class="hint"></p>
       </form>
-      <div id="lastUsed" class="panel" hidden style="max-width:560px;margin-top:12px;padding:10px 14px">
-        <button class="btn ghost" id="lastX" aria-label="dismiss" style="padding:2px 10px;float:right">×</button>
-        <span class="hint" id="lastText"></span>
+          <div id="lastUsed" class="panel" hidden style="margin-top:0;padding:10px 14px">
+            <button class="btn ghost" id="lastX" aria-label="dismiss" style="padding:2px 10px;float:right">×</button>
+            <span class="hint" id="lastText"></span>
+          </div>
+        </div>
+        <figure class="hero-art" data-entrance>
+          <img src="/static/img/group-134.png?v={{ asset_v }}" alt="laptop showing hackathon code">
+        </figure>
       </div>
       <p class="countdown" data-entrance>lock: {{ deadline|npt }}</p>
     </div>
   </section>
   <div class="wrap" style="padding-top:28px;padding-bottom:20px">
-    <div class="grid cards">
+    <div class="grid cards cards-3">
       <div class="card" data-reveal data-lift>
         <div class="card-body">
           <span class="tag">01 // enter code</span>

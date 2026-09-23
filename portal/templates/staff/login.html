@@ -3,10 +3,10 @@
 {% block title %}staff access{% endblock %}
 
 {% block body %}
-  <div class="wrap" style="padding:60px var(--dh-margin);max-width:560px">
-    <p class="pixel-label" data-entrance>restricted // staff only</p>
-    <h1 class="section-title" style="font-family:var(--dh-display);font-weight:700;font-size:34px" data-entrance>staff access</h1>
+  <div class="wrap" style="padding:60px var(--dh-margin);max-width:560px;margin:0 auto;display:flex;flex-direction:column;justify-content:center;min-height:70vh">
+    <h1 class="section-title" style="font-family:var(--dh-display);font-weight:700;font-size:34px;text-align:center" data-entrance>staff access</h1>
     <form method="post" class="panel" data-reveal>
+      <p class="pixel-label">restricted // staff only</p>
       <input type="hidden" name="next" value="{{ nxt }}">
       <label class="f">email</label>
       <input type="email" name="email" required autocomplete="username">
@@ -15,7 +15,6 @@
       <div class="btnrow">
         <button class="btn dark" type="submit">log in →</button>
       </div>
-      <p class="hint">superadmins make accounts. no signup exists. anywhere.</p>
     </form>
   </div>
 {% endblock %}
