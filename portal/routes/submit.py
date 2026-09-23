@@ -7,7 +7,7 @@ from flask import Blueprint, current_app, flash, g, jsonify, redirect, render_te
 
 from ..githubsvc import reachable, refresh
 from ..limits import limiter
-from ..utils import csv_list, deadline_for, http_ok, gh_split, locked, md_safe
+from ..utils import csv_list, deadline_for, deadlines, http_ok, gh_split, locked, md_safe
 
 bp = Blueprint("submit", __name__)
 
@@ -40,22 +40,19 @@ def _lst(sub, k):
 
 def _ctx(room):
     sub = g.db.ensure_submission(room["id"])
-    cache = None
-    if gh_split(sub.get("github_url") or ""):
-        try:
-            cache = refresh(g.db, sub, current_app.config["GITHUB_CACHE_TTL_MIN"])
-        except Exception:
-            cache = g.db.get_cache(sub["id"])
+    cache = g.db.get_cache(sub["id"])
+    dl = deadlines(g.db)
     return {
         "room": room,
         "sub": sub,
         "tech": _lst(sub, "tech_stack"),
         "members": _lst(sub, "members"),
         "cache": cache,
-        "fl": _fl(),
-        "pl": _pl(),
-        "fdl": deadline_for(g.db, "fields_deadline"),
-        "pdl": deadline_for(g.db, "presentation_deadline"),
+        "gh_pending": bool(gh_split(sub.get("github_url") or "")) and not cache,
+        "fl": locked(dl["fields_deadline"]),
+        "pl": locked(dl["presentation_deadline"]),
+        "fdl": dl["fields_deadline"],
+        "pdl": dl["presentation_deadline"],
     }
 
 
@@ -190,12 +187,24 @@ def submit_final(team_code):
             flash(e, "error")
         return redirect(f"/submit/{room['team_code']}")
     g.db.save_submission(sub["id"], fin)
-    try:
-        refresh(g.db, {**sub, **fin}, 0, force=True)
-    except Exception:
-        pass
-    flash("shipped. good luck - editable till each lock.", "ok")
+    flash("shipped. good luck - github stats fill in on the next view.", "ok")
     return redirect(f"/submit/{room['team_code']}")
+
+
+@bp.post("/submit/<team_code>/github/warm")
+@limiter.limit("20 per minute")
+def gh_warm(team_code):
+    room, t, c = _room(team_code)
+    if t:
+        return jsonify({"ok": False}), c
+    sub = g.db.ensure_submission(room["id"])
+    if not gh_split(sub.get("github_url") or ""):
+        return jsonify({"ok": True, "warmed": False})
+    try:
+        refresh(g.db, sub, current_app.config["GITHUB_CACHE_TTL_MIN"])
+        return jsonify({"ok": True, "warmed": True})
+    except Exception:
+        return jsonify({"ok": True, "warmed": False})
 
 
 @bp.post("/submit/<team_code>/shot")

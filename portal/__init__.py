@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask, g, render_template, send_file
+from flask import Flask, g, render_template, request, send_file
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 load_dotenv()
@@ -15,6 +15,27 @@ from .limits import limiter
 from .utils import f_npt, f_nptlocal
 
 root = Path(__file__).resolve().parent.parent
+
+
+def _asset_v():
+    try:
+        import subprocess
+        r = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True, text=True, timeout=5, cwd=root,
+        )
+        if r.returncode == 0 and r.stdout.strip():
+            return r.stdout.strip()
+    except Exception:
+        pass
+    try:
+        latest = 0
+        for p in (root / "static").rglob("*"):
+            if p.is_file():
+                latest = max(latest, p.stat().st_mtime)
+        return str(int(latest)) if latest else "1"
+    except Exception:
+        return "1"
 
 
 def _rel(v):
@@ -37,6 +58,7 @@ def create_app():
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
     app.config.from_object(cfg())
     app.config["USE_SUPABASE"] = bool(app.config["SUPABASE_URL"] and app.config["SUPABASE_SERVICE_KEY"])
+    app.config["ASSET_V"] = _asset_v()
     limiter.init_app(app)
     app.jinja_env.filters["reltime"] = _rel
     app.jinja_env.filters["npt"] = f_npt
@@ -69,7 +91,13 @@ def create_app():
         import io
         ext = name.rsplit(".", 1)[-1].lower()
         mime = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg", "webp": "image/webp", "gif": "image/gif"}.get(ext, "application/octet-stream")
-        return send_file(io.BytesIO(data), mimetype=mime)
+        return send_file(io.BytesIO(data), mimetype=mime, max_age=86400)
+
+    @app.after_request
+    def _cache(resp):
+        if request.path.startswith("/static/"):
+            resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return resp
 
     @app.errorhandler(403)
     def _403(e):
@@ -83,9 +111,18 @@ def create_app():
     def _429(e):
         return render_template("errors/429.html"), 429
 
+    @app.errorhandler(500)
+    def _500(e):
+        return render_template("errors/500.html"), 500
+
     @app.context_processor
     def _g():
-        return {"event_name": g.db.get_setting("event_name") if hasattr(g, "db") else "deerhack",
+        try:
+            name = g.db.get_setting("event_name") if hasattr(g, "db") else "deerhack"
+        except Exception:
+            name = "deerhack"
+        return {"event_name": name,
+                "asset_v": app.config["ASSET_V"],
                 "staff": getattr(g, "staff", None), "role": getattr(g, "role", None),
                 "now_utc": datetime.now(timezone.utc)}
 

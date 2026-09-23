@@ -52,6 +52,9 @@
         </div>
         <div class="panel" data-reveal>
           <h3 class="section-title">github · cached</h3>
+          {% if gh_pending %}
+            <p class="hint" data-gh-warm="{{ sub.id }}">warming github stats…</p>
+          {% endif %}
           {% if cache.repo_full_name %}
             <p>
               <code class="inline">{{ cache.repo_full_name }}</code>
@@ -110,5 +113,5 @@
 {% endblock %}
 
 {% block scripts %}
-  <script src="/static/js/dashboard.js" defer></script>
+  <script src="/static/js/dashboard.js?v={{ asset_v }}" defer></script>
 {% endblock %}

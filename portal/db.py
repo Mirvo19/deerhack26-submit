@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 import sqlite3
 import threading
+import time
 import uuid
 from datetime import datetime, timezone
+from functools import wraps
 from pathlib import Path
 
 schema = """
@@ -39,6 +41,10 @@ create table if not exists scores(id TEXT primary key, submission_id TEXT not nu
 create table if not exists audit_log(id TEXT primary key, actor_uid TEXT, actor_role TEXT,
   action TEXT not null, target TEXT, meta TEXT default '{}', created_at TEXT);
 create table if not exists settings(key TEXT primary key, value TEXT not null, updated_at TEXT);
+create index if not exists idx_scores_sub on scores(submission_id);
+create index if not exists idx_audit_created on audit_log(created_at);
+create index if not exists idx_sub_updated on submissions(updated_at);
+create index if not exists idx_rooms_created on rooms(created_at);
 """
 
 defaults = {
@@ -149,6 +155,21 @@ class localdb:
         except Exception:
             return r["value"]
 
+    def get_many(self, *keys):
+        out = {}
+        if keys:
+            ph = ",".join("?" * len(keys))
+            for r in self.all(
+                f"select key, value from settings where key in ({ph})", tuple(keys)
+            ):
+                try:
+                    out[r["key"]] = json.loads(r["value"])
+                except Exception:
+                    out[r["key"]] = r["value"]
+        for k in keys:
+            out.setdefault(k, defaults.get(k))
+        return out
+
     def set_setting(self, key, value):
         self._q(
             "insert into settings(key,value,updated_at) values(?,?,?)"
@@ -190,13 +211,17 @@ class localdb:
         return dict(r) if r else None
 
     def ensure_submission(self, room_id):
-        return self.submission_by_room(room_id) or (
+        row = self.submission_by_room(room_id)
+        if row:
+            return row
+        try:
             self._q(
                 "insert into submissions(id,room_id,updated_at) values(?,?,?)",
                 (uuid.uuid4().hex, room_id, _now()),
-            ),
-            self.submission_by_room(room_id),
-        )[1]
+            )
+        except sqlite3.IntegrityError:
+            self.conn.rollback()
+        return self.submission_by_room(room_id)
 
     def save_submission(self, sid, fields):
         sets, args = [], []
@@ -289,6 +314,16 @@ class supadb:
         r = self._t("settings").select("value").eq("key", key).limit(1).execute()
         return r.data[0]["value"] if r.data else defaults.get(key)
 
+    def get_many(self, *keys):
+        out = {}
+        if keys:
+            rows = self._t("settings").select("key,value").in_("key", list(keys)).execute().data or []
+            for r in rows:
+                out[r["key"]] = r["value"]
+        for k in keys:
+            out.setdefault(k, defaults.get(k))
+        return out
+
     def set_setting(self, key, value):
         self._t("settings").upsert({"key": key, "value": value}).execute()
 
@@ -325,7 +360,17 @@ class supadb:
         return _one(self._t("submissions").select("*").eq("id", sid).limit(1).execute())
 
     def ensure_submission(self, room_id):
-        return self.submission_by_room(room_id) or (self._t("submissions").insert({"room_id": room_id}).execute(), self.submission_by_room(room_id))[1]
+        row = self.submission_by_room(room_id)
+        if row:
+            return row
+        try:
+            self._t("submissions").insert({"room_id": room_id}).execute()
+        except Exception:
+            pass
+        row = self.submission_by_room(room_id)
+        if row:
+            return row
+        raise RuntimeError("submission lost in a race, retry")
 
     def save_submission(self, sid, fields):
         self._t("submissions").update(fields).eq("id", sid).execute()
@@ -384,6 +429,42 @@ class supadb:
 
     def audit_list(self, limit=200):
         return self._t("audit_log").select("*").order("created_at", desc=True).limit(limit).execute().data or []
+
+
+def _transient(e):
+    s = f"{type(e).__name__}: {e}".lower()
+    return any(
+        k in s
+        for k in (
+            "connect", "timeout", "timed out", "remoteprotocol", "pool",
+            "temporar", "reset by peer", "broken pipe", "bad gateway",
+            "service unavailable", "gateway timeout", "502", "503", "504",
+        )
+    )
+
+
+_reads = (
+    "get_setting", "get_many", "room_by_code", "room_by_id", "list_rooms",
+    "submission_by_room", "submission_by_id", "list_submissions_full",
+    "get_cache", "find_staff_by_email", "find_staff_by_uid", "email_taken",
+    "list_staff", "scores_for", "all_scores", "audit_list",
+)
+
+for _name in _reads:
+    _fn = getattr(supadb, _name)
+
+    @wraps(_fn)
+    def _wrapped(*a, _fn=_fn, **kw):
+        try:
+            return _fn(*a, **kw)
+        except Exception as e:
+            if not _transient(e):
+                raise
+            time.sleep(0.3)
+            return _fn(*a, **kw)
+
+    setattr(supadb, _name, _wrapped)
+del _name, _fn, _wrapped
 
 
 def _one(res):

@@ -67,6 +67,15 @@ def deadline_for(db, key):
     return db.get_setting(key) or db.get_setting("submission_deadline")
 
 
+def deadlines(db):
+    s = db.get_many("tracks", "fields_deadline", "presentation_deadline")
+    if not s.get("fields_deadline") or not s.get("presentation_deadline"):
+        leg = db.get_setting("submission_deadline")
+        s["fields_deadline"] = s.get("fields_deadline") or leg
+        s["presentation_deadline"] = s.get("presentation_deadline") or leg
+    return s
+
+
 def _dt(v):
     if isinstance(v, datetime):
         dt = v

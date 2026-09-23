@@ -109,6 +109,9 @@
         </div>
         <div class="panel" data-reveal>
           <h3 class="section-title">github · live cache</h3>
+          {% if gh_pending %}
+            <p class="hint" id="ghWarm" data-code="{{ room.team_code }}">warming github stats…</p>
+          {% endif %}
           {% if cache and cache.repo_full_name %}
             <p><code class="inline">{{ cache.repo_full_name }}</code></p>
             <p class="hint">★ {{ cache.stars or 0 }} · {{ cache.primary_language or "-" }} · {{ cache.commit_count or "?" }} commits</p>
@@ -142,5 +145,5 @@
 {% endblock %}
 
 {% block scripts %}
-  <script src="/static/js/submit.js" defer></script>
+  <script src="/static/js/submit.js?v={{ asset_v }}" defer></script>
 {% endblock %}

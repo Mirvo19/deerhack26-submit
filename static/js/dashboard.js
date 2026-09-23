@@ -25,7 +25,10 @@
       refreshBtn.disabled = true;
       refreshBtn.textContent = "refreshing…";
 
-      fetch("/staff/projects/" + refreshBtn.dataset.refresh + "/refresh-github", { method: "POST" })
+      var fd = new FormData();
+      fd.append("force", "1");
+
+      fetch("/staff/projects/" + refreshBtn.dataset.refresh + "/refresh-github", { method: "POST", body: fd })
         .finally(function () { location.reload(); });
     }
 
@@ -53,5 +56,13 @@
         box.closest(".slip").classList.toggle("skip", !box.checked);
       });
     });
+  }
+
+  var warm = document.querySelector("[data-gh-warm]");
+
+  if (warm) {
+    fetch("/staff/projects/" + warm.dataset.ghWarm + "/refresh-github", { method: "POST" })
+      .then(function () { warm.hidden = true; })
+      .catch(function () { warm.hidden = true; });
   }
 })();

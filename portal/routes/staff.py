@@ -110,8 +110,10 @@ def project_detail(sid):
         v = [x for x in (s.get("innovation"), s.get("execution"), s.get("impact"), s.get("presentation")) if x]
         if v:
             per.append(sum(v) / len(v))
+    cache = g.db.get_cache(sid) or {}
     return render_template("staff/project_detail.html", sub=sub, room=g.db.room_by_id(sub["room_id"]) or {},
-                           cache=g.db.get_cache(sid) or {}, scores=ss,
+                           cache=cache, scores=ss,
+                           gh_pending=bool(sub.get("github_url")) and not cache,
                            score_avg=round(sum(per) / len(per), 1) if per else None)
 
 
@@ -135,8 +137,9 @@ def refresh_github(sid):
     sub = g.db.submission_by_id(sid)
     if not sub:
         return jsonify({"ok": False}), 404
+    force = request.form.get("force") == "1"
     try:
-        c = refresh(g.db, sub, current_app.config["GITHUB_CACHE_TTL_MIN"], force=True)
-        return jsonify({"ok": True, "fetched_at": str((c or {}).get("fetched_at"))})
+        cache = refresh(g.db, sub, current_app.config["GITHUB_CACHE_TTL_MIN"], force=force)
+        return jsonify({"ok": True, "fetched_at": str((cache or {}).get("fetched_at"))})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)[:200]}), 502

@@ -134,6 +134,14 @@
       });
   });
 
+  var warm = document.getElementById("ghWarm");
+
+  if (warm && code) {
+    fetch("/submit/" + code + "/github/warm", { method: "POST" })
+      .then(function () { warm.hidden = true; })
+      .catch(function () { warm.hidden = true; });
+  }
+
   var dl = document.getElementById("deadlineCount");
   var iso = dl && dl.dataset.iso;
 

@@ -12,7 +12,7 @@ from werkzeug.security import generate_password_hash
 
 from ..auth import can_audit, can_export, can_moderate, can_rooms, can_settings, can_staff, require_roles
 from ..db import roles
-from ..utils import csv_list, deadline_for, f_npt, http_ok, md_safe, npt_to_utc
+from ..utils import csv_list, deadline_for, deadlines, f_npt, http_ok, md_safe, npt_to_utc
 
 bp = Blueprint("admin", __name__)
 
@@ -26,8 +26,15 @@ def _uid():
 def rooms():
     rooms = g.db.list_rooms()
     by = {s.get("room_id"): s.get("status") for s in g.db.list_submissions_full()}
-    return render_template("admin/rooms.html", rooms=rooms, tracks=g.db.get_setting("tracks") or [],
-                           fdl=deadline_for(g.db, "fields_deadline"), pdl=deadline_for(g.db, "presentation_deadline"), status_by_room=by)
+    dl = deadlines(g.db)
+    return render_template(
+        "admin/rooms.html",
+        rooms=rooms,
+        tracks=dl["tracks"] or [],
+        fdl=dl["fields_deadline"],
+        pdl=dl["presentation_deadline"],
+        status_by_room=by,
+    )
 
 
 @bp.post("/rooms/new")
@@ -193,17 +200,18 @@ def account_new():
         flash("that email already lives in one role table. one role per human.", "error")
         return redirect(url_for("admin.accounts"))
     uid = uuid.uuid4().hex
-    if current_app.config["USE_SUPABASE"]:
-        try:
+    try:
+        if current_app.config["USE_SUPABASE"]:
             from supabase import create_client
             sb = create_client(current_app.config["SUPABASE_URL"], current_app.config["SUPABASE_SERVICE_KEY"])
             uid = getattr(sb.auth.admin.create_user({"email": email, "password": pw, "email_confirm": True}).user, "id", uid)
-        except Exception as e:
-            flash(f"auth broke: {e}"[:200], "error")
-            return redirect(url_for("admin.accounts"))
-        g.db.create_staff(role, uid, name, email, None, _uid())
-    else:
-        g.db.create_staff(role, uid, name, email, generate_password_hash(pw), _uid())
+            g.db.create_staff(role, uid, name, email, None, _uid())
+        else:
+            g.db.create_staff(role, uid, name, email, generate_password_hash(pw), _uid())
+    except Exception as e:
+        current_app.logger.exception("account create failed")
+        flash(f"could not create account: {e}"[:200], "error")
+        return redirect(url_for("admin.accounts"))
     g.db.audit(_uid(), g.role, "mademan", email, {"role": role})
     flash(f"{role} live for {email}.", "ok")
     return redirect(url_for("admin.accounts"))

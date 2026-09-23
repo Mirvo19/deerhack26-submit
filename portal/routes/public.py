@@ -9,8 +9,9 @@ bp = Blueprint("public", __name__)
 
 @bp.get("/")
 def landing():
-    return render_template("landing.html", deadline=g.db.get_setting("submission_deadline"),
-                           tracks=g.db.get_setting("tracks") or [], error=request.args.get("error"))
+    s = g.db.get_many("submission_deadline", "tracks")
+    return render_template("landing.html", deadline=s["submission_deadline"],
+                           tracks=s["tracks"] or [], error=request.args.get("error"))
 
 
 @bp.post("/enter")

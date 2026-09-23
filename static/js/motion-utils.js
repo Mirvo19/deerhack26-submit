@@ -140,6 +140,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
+    m = window.Motion || null;
     enter();
     reveal();
     lift();

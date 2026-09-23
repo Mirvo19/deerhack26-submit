@@ -135,3 +135,8 @@ alter table superadmins enable row level security;
 alter table scores enable row level security;
 alter table audit_log enable row level security;
 alter table settings enable row level security;
+
+create index if not exists idx_scores_sub on scores(submission_id);
+create index if not exists idx_audit_created on audit_log(created_at);
+create index if not exists idx_sub_updated on submissions(updated_at);
+create index if not exists idx_rooms_created on rooms(created_at);
