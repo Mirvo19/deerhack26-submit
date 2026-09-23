@@ -17,7 +17,8 @@ class cfg:
         os.environ.get("STAFF_LOGIN_PATH", "/dh-den-9x4k-entry").strip()
         or "/dh-den-9x4k-entry"
     )
-    MAX_CONTENT_LENGTH = _int("MAX_UPLOAD_MB", 5) * 1024 * 1024
+    MAX_CONTENT_LENGTH = _int("MAX_BODY_MB", 52) * 1024 * 1024
+    MAX_UPLOAD_MB = _int("MAX_UPLOAD_MB", 5)
     UPLOAD_BUCKET = os.environ.get("UPLOAD_BUCKET", "submission-assets")
     GITHUB_CACHE_TTL_MIN = _int("GITHUB_CACHE_TTL_MIN", 10)
     LOCAL_DB_PATH = os.environ.get(

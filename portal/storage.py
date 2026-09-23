@@ -4,7 +4,7 @@ import uuid
 from pathlib import Path
 
 ext_ok = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
-pres_ok = {".pdf", ".ppt", ".pptx", ".key", ".zip", ".mp4", ".mov", ".webm"}
+pres_ok = {".ppt", ".pptx"}
 
 
 def _img_kind(data):
@@ -42,8 +42,8 @@ def save_shot(app, f):
     if ext not in ext_ok:
         return None, "only png/jpg/webp/gif"
     data = f.read()
-    if len(data) > app.config["MAX_CONTENT_LENGTH"]:
-        return None, "too big (max 5mb)"
+    if len(data) > app.config["MAX_UPLOAD_MB"] * 1024 * 1024:
+        return None, f"too big (max {app.config['MAX_UPLOAD_MB']}mb)"
     if len(data) < 64 or _img_kind(data) not in ("png", "jpeg", "gif", "webp"):
         return None, "not a real image"
     return _store(app, data, ext)
@@ -54,18 +54,15 @@ def save_pres(app, f):
         return None, "no-file"
     ext = Path(f.filename).suffix.lower()
     if ext not in pres_ok:
-        return None, "only pdf/ppt/pptx/key/zip/mp4/mov/webm"
+        return None, "only ppt/pptx here - put anything else on drive and paste the link below"
     data = f.read()
-    if len(data) > 20 * 1024 * 1024:
-        return None, "too big (max 20mb)"
+    if len(data) > 50 * 1024 * 1024:
+        return None, "too big (max 50mb) - put it on drive and paste the link below"
     if len(data) < 64:
         return None, "not a real file"
     head = data[:8]
-    good = ((ext == ".pdf" and head[:4] == b"%PDF")
-            or (ext in (".pptx", ".key", ".zip") and head[:2] == b"PK")
-            or (ext == ".ppt" and head[:4] == b"\xd0\xcf\x11\xe0")
-            or (ext in (".mp4", ".mov") and b"ftyp" in data[4:12])
-            or (ext == ".webm" and head[:4] == b"\x1a\x45\xdf\xa3"))
+    good = ((ext == ".pptx" and head[:2] == b"PK")
+            or (ext == ".ppt" and head[:4] == b"\xd0\xcf\x11\xe0"))
     if not good:
         return None, "content does not match its type"
     return _store(app, data, ext)

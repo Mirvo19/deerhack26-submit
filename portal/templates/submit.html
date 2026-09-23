@@ -95,8 +95,9 @@
                 <p><a href="{{ sub.presentation_file }}">current file ↓</a></p>
               {% endif %}
               {% if not pl %}
-                <label class="f">upload deck (pdf/ppt/pptx/key/zip/mp4/mov/webm ≤20mb)</label>
-                <input type="file" id="presFile" accept=".pdf,.ppt,.pptx,.key,.zip,.mp4,.mov,.webm">
+                <label class="f">upload deck (ppt/pptx only, ≤50mb)</label>
+                <input type="file" id="presFile" accept=".ppt,.pptx">
+                <p class="hint">anything else — slides, pdf, video — goes on drive, paste the link below.</p>
                 <p class="hint" id="presStatus" role="status"></p>
               {% endif %}
             </div>
