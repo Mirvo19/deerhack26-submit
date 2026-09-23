@@ -5,6 +5,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from flask import Flask, g, render_template, send_file
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 load_dotenv()
 
@@ -33,6 +34,7 @@ def _rel(v):
 
 def create_app():
     app = Flask(__name__, static_folder=str(root / "static"))
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
     app.config.from_object(cfg())
     app.config["USE_SUPABASE"] = bool(app.config["SUPABASE_URL"] and app.config["SUPABASE_SERVICE_KEY"])
     limiter.init_app(app)
