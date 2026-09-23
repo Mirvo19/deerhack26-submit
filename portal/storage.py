@@ -20,19 +20,13 @@ def _img_kind(data):
 
 
 def _store(app, data, ext):
+    from supabase import create_client
     name = uuid.uuid4().hex + ext
-    url, key = app.config["SUPABASE_URL"], app.config["SUPABASE_SERVICE_KEY"]
-    if url and key:
-        try:
-            from supabase import create_client
-            create_client(url, key).storage.from_(app.config["UPLOAD_BUCKET"]).upload(name, data)
-            return f"/uploads/{name}", None
-        except Exception as e:
-            return None, f"storage broke: {e}"[:120]
-    dest = Path(app.root_path).parent / "uploads"
-    dest.mkdir(exist_ok=True)
-    (dest / name).write_bytes(data)
-    return f"/uploads/{name}", None
+    try:
+        create_client(app.config["SUPABASE_URL"], app.config["SUPABASE_SERVICE_KEY"]).storage.from_(app.config["UPLOAD_BUCKET"]).upload(name, data)
+        return f"/uploads/{name}", None
+    except Exception as e:
+        return None, f"storage broke: {e}"[:120]
 
 
 def save_shot(app, f):
@@ -69,12 +63,8 @@ def save_pres(app, f):
 
 
 def load_bytes(app, name):
-    url, key = app.config["SUPABASE_URL"], app.config["SUPABASE_SERVICE_KEY"]
-    if url and key:
-        try:
-            from supabase import create_client
-            return create_client(url, key).storage.from_(app.config["UPLOAD_BUCKET"]).download(name)
-        except Exception:
-            return None
-    p = Path(app.root_path).parent / "uploads" / Path(name).name
-    return p.read_bytes() if p.exists() else None
+    from supabase import create_client
+    try:
+        return create_client(app.config["SUPABASE_URL"], app.config["SUPABASE_SERVICE_KEY"]).storage.from_(app.config["UPLOAD_BUCKET"]).download(Path(name).name)
+    except Exception:
+        return None

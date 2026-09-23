@@ -2,8 +2,6 @@ import sys
 
 sys.path.insert(0, ".")
 
-from werkzeug.security import generate_password_hash
-
 from portal import create_app
 from portal.db import get_db
 
@@ -19,15 +17,15 @@ def main():
     app = create_app()
     with app.app_context():
         from flask import g
+        from supabase import create_client
         g.db = get_db(app)
         if g.db.email_taken(email):
             print("mail taken")
             sys.exit(1)
-        import uuid
-        g.db.create_staff(
-            "superadmins", uuid.uuid4().hex, name, email, generate_password_hash(pw), None,
-        )
-        print(f"superadmin {email} live. hit {app.config['STAFF_LOGIN_PATH']}")
+        sb = create_client(app.config["SUPABASE_URL"], app.config["SUPABASE_SERVICE_KEY"])
+        uid = sb.auth.admin.create_user({"email": email, "password": pw, "email_confirm": True}).user.id
+        g.db.create_staff("superadmins", uid, name, email, None, None)
+        print(f"superadmin {email} live. log in at {app.config['STAFF_LOGIN_PATH']}")
 
 
 if __name__ == "__main__":

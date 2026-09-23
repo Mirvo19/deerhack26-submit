@@ -58,6 +58,8 @@ def create_app():
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
     app.config.from_object(cfg())
     app.config["USE_SUPABASE"] = bool(app.config["SUPABASE_URL"] and app.config["SUPABASE_SERVICE_KEY"])
+    if not app.config["USE_SUPABASE"]:
+        raise RuntimeError("supabase not configured - set supabase_url + supabase_service_key")
     app.config["ASSET_V"] = _asset_v()
     limiter.init_app(app)
     app.jinja_env.filters["reltime"] = _rel

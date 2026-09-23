@@ -21,10 +21,6 @@ class cfg:
     MAX_UPLOAD_MB = _int("MAX_UPLOAD_MB", 5)
     UPLOAD_BUCKET = os.environ.get("UPLOAD_BUCKET", "submission-assets")
     GITHUB_CACHE_TTL_MIN = _int("GITHUB_CACHE_TTL_MIN", 10)
-    LOCAL_DB_PATH = os.environ.get(
-        "LOCAL_DB_PATH",
-        "/tmp/deerhack.db" if os.environ.get("VERCEL") else "deerhack.db",
-    )
 
     @property
     def use_supabase(self):
