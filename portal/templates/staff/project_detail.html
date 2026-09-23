@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}{{ sub.title or "project" }} · staff{% endblock %}
+
+{% block body %}
+  <div class="wrap" style="padding-top:24px;padding-bottom:30px">
+    <p><a href="/staff/projects">← all projects</a></p>
+    <p class="pixel-label" data-entrance>{{ room.name }} // {{ room.track }}</p>
+    <h1 style="font-family:var(--dh-display);font-weight:700;font-size:clamp(28px,4vw,46px);margin:0" data-entrance>
+      {{ sub.title or "untitled" }}
+    </h1>
+    <p data-entrance>
+      {{ sub.tagline }}
+      <span class="tag {% if sub.status=='final' %}ok{% else %}warn{% endif %}">{{ sub.status }}</span>
+    </p>
+    <div class="grid cols-2-1" id="pdGrid">
+      <div class="grid">
+        <div class="panel" data-reveal>
+          {% if sub.thumbnail_url %}
+            <img src="{{ sub.thumbnail_url }}" alt="" style="width:100%;border:2px solid var(--dh-black);border-radius:5px">
+          {% endif %}
+          <h3 class="section-title">problem</h3>
+          <p>{{ sub.problem_statement or "-" }}</p>
+          <h3 class="section-title">build</h3>
+          <div class="prose">{{ sub.description_html|safe }}</div>
+          <p>
+            {% for t in sub.tech_stack %}
+              <span class="tag ghost">{{ t }}</span>
+            {% endfor %}
+          </p>
+          <p class="hint">crew: {{ sub.members|join(", ") or "-" }}</p>
+          <p class="hint"><a href="{{ sub.github_url }}">repo ↗</a> · <a href="{{ sub.demo_url }}">demo ↗</a></p>
+          {% if role in ('admin','superadmin') %}
+            <p><a class="btn ghost" href="/staff/manage/moderate/{{ sub.id }}">moderate / edit →</a></p>
+          {% endif %}
+        </div>
+        <div class="panel" data-reveal>
+          <h3 class="section-title">deck / slides</h3>
+          {% if sub.presentation_type=='file' and sub.presentation_file %}
+            {% set ext=(sub.presentation_file.rsplit('.',1)[-1]|lower) if '.' in sub.presentation_file else '' %}
+            <p>
+              <a class="btn ghost" href="{{ sub.presentation_file }}">download deck ↓</a>
+              <span class="tag">
+                {% if ext=='pdf' %}pdf file{% elif ext in ('ppt','pptx','key') %}slides file{% elif ext in ('mp4','mov','webm') %}video file{% elif ext=='zip' %}zip file{% else %}file{% endif %}
+              </span>
+            </p>
+          {% elif sub.presentation_link %}
+            <p><a href="{{ sub.presentation_link }}">open deck link ↗</a> <span class="tag ghost">link</span></p>
+          {% else %}
+            <p class="hint">no deck yet.</p>
+          {% endif %}
+        </div>
+        <div class="panel" data-reveal>
+          <h3 class="section-title">github · cached</h3>
+          {% if cache.repo_full_name %}
+            <p>
+              <code class="inline">{{ cache.repo_full_name }}</code>
+              <span class="hint">★ {{ cache.stars or 0 }} · {{ cache.primary_language or "-" }} · {{ cache.commit_count or "?" }} commits</span>
+            </p>
+            <p class="hint">last: “{{ cache.last_commit_message or "-" }}” - {{ cache.last_commit_author or "" }} · {{ cache.last_commit_at|npt }} · fetched {{ cache.fetched_at|npt }}</p>
+            {% if cache.readme_html %}
+              <details open>
+                <summary>readme</summary>
+                <div class="prose">{{ cache.readme_html|safe }}</div>
+              </details>
+            {% endif %}
+          {% elif cache.fetch_error %}
+            <p class="flash error">{{ cache.fetch_error }}</p>
+          {% else %}
+            <p class="hint">no repo linked yet.</p>
+          {% endif %}
+          <div class="btnrow">
+            <button class="btn ghost" data-refresh="{{ sub.id }}">refresh from github</button>
+          </div>
+          <p class="hint">cache-first: only refetches when stale past 10 min. github gives 60 req/hr, don't be greedy.</p>
+        </div>
+      </div>
+      <div class="grid">
+        {% if role in ('judge','superadmin') %}
+          <form method="post" action="/staff/projects/{{ sub.id }}/score" class="panel" data-reveal>
+            <h3 class="section-title">score (1–10)</h3>
+            {% for k in ('innovation','execution','impact','presentation') %}
+              <label class="f">{{ k }}</label>
+              <input type="text" inputmode="numeric" name="{{ k }}" placeholder="1–10">
+            {% endfor %}
+            <label class="f">feedback</label>
+            <textarea name="notes" rows="3" style="min-height:70px"></textarea>
+            <div class="btnrow">
+              <button class="btn" type="submit">save score</button>
+            </div>
+            <p class="hint">saves stack — every save is a new row, so multi-round judging just works.</p>
+          </form>
+        {% endif %}
+        <div class="panel" data-reveal>
+          <h3 class="section-title">scores ({{ scores|length }}){% if score_avg %} · avg {{ score_avg }}{% endif %}</h3>
+          {% for s in scores %}
+            <p class="hint">
+              <code class="inline">{{ [s.innovation,s.execution,s.impact,s.presentation]|join("/") }}</code>
+              {{ s.notes }}
+              <br>
+              - {{ s.judge_uid[:6] }} · {{ s.created_at|npt }}
+            </p>
+          {% else %}
+            <p class="hint">no scores yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="/static/js/dashboard.js" defer></script>
+{% endblock %}

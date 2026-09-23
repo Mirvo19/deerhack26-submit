@@ -1,0 +1,24 @@
+:root {
+  --dh-accent: #58c6c3;
+  --dh-accent-deep: #3aa8a5;
+  --dh-accent-wash: #dcf3f2;
+  --dh-black: #121212;
+  --dh-ink: #2b2b2b;
+  --dh-muted: #6f6f6f;
+  --dh-white: #fff;
+  --dh-paper: #f7f5f0;
+  --dh-line: #e4e0d6;
+  --dh-leaf: #7ab648;
+  --dh-sand: #f2ce84;
+  --dh-red: #e5484d;
+  --dh-display: "bbh bartle", "arial black", sans-serif;
+  --dh-body: "google sans flex", "plus jakarta sans", system-ui, -apple-system, "segoe ui", roboto, sans-serif;
+  --dh-head: "google sans flex", "plus jakarta sans", "segoe ui", system-ui, sans-serif;
+  --dh-pixel: "bitcount single", "courier new", monospace;
+  --dh-margin: 40px;
+  --dh-pad: 15px;
+  --dh-px: 16px;
+  --dh-radius: 5px;
+  --dh-shadow: 4px 4px 0 var(--dh-black);
+  --dh-shadow-sm: 2px 2px 0 var(--dh-black);
+}

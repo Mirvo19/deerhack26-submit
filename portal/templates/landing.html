@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event_name }} - submit{% endblock %}
+
+{% block body %}
+  <section class="hero">
+    <svg class="hero-motif" width="160" height="80" viewBox="0 0 160 80" fill="none" data-motif-wave aria-hidden="true">
+      <path d="M32 32h16v16H32zM48 48h16v16H48zM32 64h16v16H32zM16 64h16v16H16zM0 48h16v16H0zM0 32h16v16H0zM0 16h16v16H0zM16 0h16v16H16zM32 0h16v16H32zM48 0h16v16H48zM64 16h16v16H64zM80 32h16v16H80zM80 48h16v16H80zM96 64h16v16H96zM112 64h16v16h-16zM128 48h16v16h-16zM144 32h16v16h-16zM144 16h16v16h-16zM128 0h16v16h-16zM112 16h16v16h-16z" fill="#58C6C3" />
+    </svg>
+    <div class="wrap">
+      <p class="pixel-label" data-entrance>room-code entry // no accounts</p>
+      <h1 data-entrance>ship your <span class="accent">project</span>.</h1>
+      <p class="lede" data-entrance></p>
+      <br>
+      <br>
+      <form method="post" action="/enter" class="panel" style="max-width:560px;margin-top:22px" data-entrance data-reveal>
+        <label class="f" for="code">team / room code</label>
+        <input type="text" id="code" name="team_code" placeholder="eg juniper-fox-27" autocomplete="off" required style="font-family:var(--dh-pixel);letter-spacing:.1em">
+        <div class="btnrow">
+          <button class="btn" type="submit">open editor →</button>
+        </div>
+        {% if error %}
+          <p class="flash error">{{ error }}</p>
+        {% endif %}
+        <p class="hint">codes are bearer secrets — holder can edit. lost it? ask an organizer, don't guess.</p>
+      </form>
+      <div id="lastUsed" class="panel" hidden style="max-width:560px;margin-top:12px;padding:10px 14px">
+        <button class="btn ghost" id="lastX" aria-label="dismiss" style="padding:2px 10px;float:right">×</button>
+        <span class="hint" id="lastText"></span>
+      </div>
+      <p class="countdown" data-entrance>lock: {{ deadline|npt }}</p>
+    </div>
+  </section>
+  <div class="wrap" style="padding-top:28px;padding-bottom:20px">
+    <div class="grid cards">
+      <div class="card" data-reveal data-lift>
+        <div class="card-body">
+          <span class="tag">01 // enter code</span>
+          <h3 class="card-title">open your room</h3>
+          <p class="hint">one editor per team. drafts autosave while you type. hit final when demo-ready.</p>
+        </div>
+      </div>
+      <div class="card" data-reveal data-lift>
+        <div class="card-body">
+          <span class="tag">02 // build in public</span>
+          <h3 class="card-title">link your repo</h3>
+          <p class="hint">public github repo only - we check it's reachable and pull stats + readme for judges.</p>
+        </div>
+      </div>
+      <div class="card" data-reveal data-lift>
+        <div class="card-body">
+          <span class="tag">03 // tracks</span>
+          <h3 class="card-title">{{ tracks|join(" · ") }}</h3>
+          <p class="hint">pick your track in the editor. judges score innovation, execution, impact, presentation.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="/static/js/landing.js" defer></script>
+{% endblock %}

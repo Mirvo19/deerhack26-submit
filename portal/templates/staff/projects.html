@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}projects · {{ role }}{% endblock %}
+
+{% block body %}
+  <div class="wrap" style="padding-top:24px;padding-bottom:30px">
+    <p class="pixel-label" data-entrance>browser // {{ role }}</p>
+    <h1 class="section-title" style="font-family:var(--dh-display);font-weight:700;font-size:clamp(28px,4vw,44px)" data-entrance>
+      all builds.
+    </h1>
+    <form method="get" class="toolbar" data-reveal>
+      <div class="grow">
+        <label class="f">search</label>
+        <input type="text" name="q" value="{{ q }}" placeholder="title, tagline, room…">
+      </div>
+      <div>
+        <label class="f">track</label>
+        <select name="track">
+          <option value="">all</option>
+          {% for t in tracks %}
+            <option {% if t==track %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% if role in ('judge','admin','superadmin') %}
+        <div>
+          <label class="f">sort</label>
+          <select name="sort" onchange="this.form.submit()">
+            <option value="recent" {% if sort!='top' %}selected{% endif %}>recent</option>
+            <option value="top" {% if sort=='top' %}selected{% endif %}>top scored</option>
+          </select>
+        </div>
+      {% endif %}
+      <div>
+        <label class="f">&nbsp;</label>
+        <button class="btn ghost" type="submit">filter</button>
+      </div>
+    </form>
+    {% if cards %}
+      <div class="grid cards">
+        {% for c in cards %}
+          <a class="card" data-reveal data-lift href="/staff/projects/{{ c.id }}" style="text-decoration:none;color:inherit">
+            {% if c.thumbnail_url %}
+              <img class="thumb" src="{{ c.thumbnail_url }}" alt="">
+            {% endif %}
+            <div class="card-body">
+              <div>
+                <span class="tag ghost">{{ c.room_track }}</span>
+                <span class="tag {% if c.status=='final' %}ok{% else %}warn{% endif %}">{{ c.status }}</span>
+                {% if avgs.get(c.id) %}
+                  <span class="tag">★ {{ avgs[c.id] }}</span>
+                {% endif %}
+                {% if c.room %}
+                  <span class="tag ghost">@ {{ c.room }}</span>
+                {% endif %}
+              </div>
+              <h3 class="card-title">{{ c.title or "untitled" }}</h3>
+              <div class="hint">{{ c.room_name }} · {{ c.tagline }}</div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty" data-reveal>
+        no ships yet - rooms exist, nobody pushed.
+        <br>
+        <svg width="96" height="32" viewBox="0 0 96 32" data-motif-wave aria-hidden="true">
+          <path d="M0 0h16v16H0zM16 16h16v16H16zM32 0h16v16H32zM48 16h16v16H48zM64 0h16v16H64zM80 16h16v16H80z" fill="#58C6C3" />
+        </svg>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="/static/js/dashboard.js" defer></script>
+{% endblock %}

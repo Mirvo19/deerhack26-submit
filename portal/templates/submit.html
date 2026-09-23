@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}submit - {{ room.name }} · {{ event_name }}{% endblock %}
+
+{% block body %}
+  <div class="wrap" style="padding-top:26px;padding-bottom:30px">
+    <p class="pixel-label" data-entrance>room: {{ room.name }} // track: {{ room.track }}</p>
+    <h1 class="section-title" style="font-family:var(--dh-display);font-weight:700;font-size:clamp(28px,4vw,46px)" data-entrance>
+      {{ sub.title or "untitled" }}
+    </h1>
+    <p>
+      <span class="tag {% if fl and pl %}bad{% elif sub.status=='final' %}ok{% else %}warn{% endif %}">
+        {% if fl and pl %}fully locked{% else %}{{ sub.status }}{% endif %}
+      </span>
+      <span class="tag {% if fl %}bad{% else %}ok{% endif %}">
+        fields {% if fl %}locked{% else %}open{% endif %}
+      </span>
+      <span class="tag {% if pl %}bad{% else %}ok{% endif %}">
+        deck {% if pl %}locked{% else %}open{% endif %}
+      </span>
+      <span class="countdown" id="deadlineCount" data-iso="{{ fdl }}"></span>
+      <span class="hint" id="saveStatus" role="status"></span>
+    </p>
+    <p class="hint">fields lock {{ fdl|npt }} · deck lock {{ pdl|npt }}</p>
+    <div class="grid cols-2-1" id="editGrid">
+      <form id="subForm" data-code="{{ room.team_code }}" data-room="{{ room.name }}" method="post" action="/submit/{{ room.team_code }}/save" class="panel" data-reveal>
+        <fieldset {% if fl %}disabled{% endif %}>
+          {% if fl %}
+            <p class="flash error">fields locked at {{ fdl|npt }} - deck below may still be open.</p>
+          {% endif %}
+          <label class="f">project title *</label>
+          <input type="text" name="title" value="{{ sub.title }}" maxlength="160" required>
+          <label class="f">one-line tagline</label>
+          <input type="text" name="tagline" value="{{ sub.tagline }}" maxlength="220" placeholder="the 10-second pitch">
+          <label class="f">team members (comma separated)</label>
+          <input type="text" name="members" value="{{ members|join(', ') }}" placeholder="asha, bibek, …">
+          <p class="hint">track: {{ room.track }} (organizer sets this)</p>
+          <label class="f">github repo url (public) *</label>
+          <input type="url" name="github_url" value="{{ sub.github_url }}" placeholder="https://github.com/owner/repo">
+          <p class="hint">checked reachable + public on final. stats + readme cached for judges.</p>
+          <label class="f">live demo url</label>
+          <input type="url" name="demo_url" value="{{ sub.demo_url }}" placeholder="https://…">
+          <label class="f">tech stack (comma separated)</label>
+          <input type="text" name="tech_stack" value="{{ tech|join(', ') }}" placeholder="python, flask, supabase">
+          <label class="f">problem - what it solves</label>
+          <textarea name="problem_statement" rows="3" style="min-height:80px">{{ sub.problem_statement }}</textarea>
+          <label class="f">full description (markdown ok)</label>
+          <textarea name="description" rows="12">{{ sub.description }}</textarea>
+          <p class="hint">markdown rendered + sanitized server-side. no raw html embeds.</p>
+        </fieldset>
+        {% if fl and pl %}
+          <p class="flash error">past both locks - server says no. ping staff to change anything.</p>
+        {% else %}
+          <div class="btnrow">
+            <button class="btn ghost" type="submit">save draft</button>
+            <button class="btn" type="submit" formaction="/submit/{{ room.team_code }}/final">submit final →</button>
+          </div>
+        {% endif %}
+      </form>
+      <aside class="grid">
+        <div class="panel" data-reveal>
+          <h3 class="section-title">thumbnail</h3>
+          {% if sub.thumbnail_url %}
+            <img id="shotPrev" src="{{ sub.thumbnail_url }}" alt="project thumbnail" style="width:100%;border:2px solid var(--dh-black);border-radius:5px">
+          {% else %}
+            <img id="shotPrev" hidden alt="" style="width:100%">
+          {% endif %}
+          {% if not fl %}
+            <label class="f">screenshot (png/jpg/webp/gif ≤5mb)</label>
+            <input type="file" id="shotFile" accept=".png,.jpg,.jpeg,.webp,.gif">
+          {% endif %}
+        </div>
+        <div class="panel" data-reveal>
+          <h3 class="section-title">
+            deck / slides
+            <span class="tag {% if pl %}bad{% else %}ok{% endif %}">
+              {% if pl %}locked{% else %}open{% endif %}
+            </span>
+          </h3>
+          {% if pl %}
+            <p class="flash error">deck locked at {{ pdl|npt }}.</p>
+          {% endif %}
+          <fieldset {% if pl %}disabled{% endif %}>
+            <label class="f">mode</label>
+            <label>
+              <input type="radio" name="presentation_type" value="file" form="subForm" {% if sub.presentation_type=='file' %}checked{% endif %} style="width:auto">
+              file upload
+            </label>
+            <label>
+              <input type="radio" name="presentation_type" value="link" form="subForm" {% if sub.presentation_type!='file' %}checked{% endif %} style="width:auto">
+              link
+            </label>
+            <div id="presFileWrap" {% if sub.presentation_type!='file' %}hidden{% endif %}>
+              {% if sub.presentation_file %}
+                <p><a href="{{ sub.presentation_file }}">current file ↓</a></p>
+              {% endif %}
+              {% if not pl %}
+                <label class="f">upload deck (pdf/ppt/pptx/key/zip/mp4/mov/webm ≤20mb)</label>
+                <input type="file" id="presFile" accept=".pdf,.ppt,.pptx,.key,.zip,.mp4,.mov,.webm">
+                <p class="hint" id="presStatus" role="status"></p>
+              {% endif %}
+            </div>
+            <div id="presLinkWrap" {% if sub.presentation_type=='file' %}hidden{% endif %}>
+              <label class="f">deck link</label>
+              <input form="subForm" type="url" name="presentation_link" value="{{ sub.presentation_link }}" placeholder="https://slides.google.com/…">
+            </div>
+          </fieldset>
+        </div>
+        <div class="panel" data-reveal>
+          <h3 class="section-title">github · live cache</h3>
+          {% if cache and cache.repo_full_name %}
+            <p><code class="inline">{{ cache.repo_full_name }}</code></p>
+            <p class="hint">★ {{ cache.stars or 0 }} · {{ cache.primary_language or "-" }} · {{ cache.commit_count or "?" }} commits</p>
+            <p class="hint">last: {{ cache.last_commit_message or "-" }} - {{ cache.last_commit_author or "" }} ({{ cache.last_commit_at|npt }})</p>
+            {% if cache.readme_html %}
+              <details>
+                <summary>readme preview</summary>
+                <div class="prose">{{ cache.readme_html|safe }}</div>
+              </details>
+            {% endif %}
+            <p class="hint">fetched {{ cache.fetched_at|npt }}</p>
+          {% elif cache and cache.fetch_error %}
+            <p class="flash error">github: {{ cache.fetch_error }}</p>
+          {% else %}
+            <div class="empty">
+              no github data yet - save a repo url.
+              <br>
+              <svg width="64" height="32" viewBox="0 0 64 32" data-motif-wave aria-hidden="true">
+                <path d="M0 0h16v16H0zM16 16h16v16H16zM32 0h16v16H32zM48 16h16v16H48z" fill="#58C6C3" />
+              </svg>
+            </div>
+          {% endif %}
+        </div>
+        <div class="panel" data-reveal>
+          <h3 class="section-title">rendered preview</h3>
+          <div class="prose">{{ sub.description_html|safe }}</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="/static/js/submit.js" defer></script>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}audit log{% endblock %}
+
+{% block body %}
+  <div class="wrap" style="padding-top:24px;padding-bottom:30px">
+    <p class="pixel-label">superadmin // receipts</p>
+    <h1 class="section-title">audit log</h1>
+    <div class="panel">
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <tr>
+            <th>when (npt)</th>
+            <th>who</th>
+            <th>did</th>
+            <th>target</th>
+            <th>meta</th>
+          </tr>
+          {% for l in logs %}
+            <tr>
+              <td class="hint">{{ l.created_at|npt }}</td>
+              <td><code class="inline">{{ (l.actor_uid or "?")[:8] }}</code> {{ l.actor_role }}</td>
+              <td>{{ l.action }}</td>
+              <td>{{ l.target or "" }}</td>
+              <td class="hint">{{ l.meta }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5">clean. nobody touched anything.</td></tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}

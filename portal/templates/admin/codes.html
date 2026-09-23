@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}codes · print{% endblock %}
+
+{% block body %}
+  <div class="wrap" style="padding-top:24px;padding-bottom:30px">
+    <p><a href="/staff/manage/rooms" class="no-print">← back to rooms</a></p>
+    <p class="pixel-label no-print" data-entrance>admin // cut + hand out</p>
+    <h1 class="section-title no-print" data-entrance>code slips.</h1>
+    <form method="get" class="toolbar no-print" data-reveal>
+      <div>
+        <label class="f">track</label>
+        <select name="track">
+          <option value="">all</option>
+          {% for t in tracks %}
+            <option {% if t==track %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="f">&nbsp;</label>
+        <button class="btn ghost" type="submit">filter</button>
+      </div>
+      <div>
+        <label class="f">&nbsp;</label>
+        <button class="btn dark" type="button" data-print>print →</button>
+      </div>
+      <label class="f">
+        <input type="checkbox" id="selAll" checked style="width:auto">
+        all in
+      </label>
+    </form>
+    {% if rooms %}
+      <div class="slips">
+        {% for r in rooms %}
+          <div class="slip" data-reveal>
+            <label class="slip-pick no-print">
+              <input type="checkbox" class="slip-check" checked style="width:auto">
+              print this
+            </label>
+            <div class="pixel-label">deerhack // {{ r.track }}</div>
+            <div class="slip-team">{{ r.name }}</div>
+            {% if r.room %}
+              <div class="hint">@ {{ r.room }}</div>
+            {% endif %}
+            <div class="slip-code">{{ r.team_code }}</div>
+            <div class="hint">type it at the portal home. no account. keep it in-team.</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty no-print" data-reveal>no rooms in this track yet.</div>
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="/static/js/dashboard.js" defer></script>
+{% endblock %}

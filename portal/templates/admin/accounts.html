@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}accounts · superadmin{% endblock %}
+
+{% block body %}
+  <div class="wrap" style="padding-top:24px;padding-bottom:30px">
+    <p class="pixel-label" data-entrance>superadmin // one role per human</p>
+    <h1 class="section-title" style="font-family:var(--dh-display);font-weight:700;font-size:clamp(28px,4vw,44px)" data-entrance>
+      who gets in.
+    </h1>
+    <form method="post" action="/staff/manage/accounts/new" class="panel" style="max-width:640px" data-reveal>
+      <h3 class="section-title">make staff (auth user + role row, one shot)</h3>
+      <div class="grid cols-1-1">
+        <div>
+          <label class="f">name</label>
+          <input type="text" name="name" required>
+        </div>
+        <div>
+          <label class="f">email</label>
+          <input type="email" name="email" required>
+        </div>
+        <div>
+          <label class="f">role</label>
+          <select name="role">
+            <option value="judges">judge</option>
+            <option value="mentors">mentor</option>
+            <option value="admins">admin</option>
+            <option value="superadmins">superadmin</option>
+          </select>
+        </div>
+        <div>
+          <label class="f">password (10+)</label>
+          <input type="password" name="password" required minlength="10">
+        </div>
+      </div>
+      <div class="btnrow">
+        <button class="btn" type="submit">make account →</button>
+      </div>
+    </form>
+    {% for table, rows in staff.items() %}
+      <div class="panel" style="margin-top:18px" data-reveal>
+        <h3 class="section-title">{{ table }} ({{ rows|length }})</h3>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <tr>
+              <th>name</th>
+              <th>email</th>
+              <th>state</th>
+              <th></th>
+            </tr>
+            {% for r in rows %}
+              <tr>
+                <td>{{ r.name }}</td>
+                <td>{{ r.email }}</td>
+                <td>
+                  {% if r.active %}
+                    <span class="tag ok">on</span>
+                  {% else %}
+                    <span class="tag bad">off</span>
+                  {% endif %}
+                </td>
+                <td style="white-space:nowrap">
+                  <form style="display:inline" method="post" action="/staff/manage/accounts/{{ table }}/{{ r.uid }}/toggle">
+                    <button class="btn ghost" style="padding:4px 8px">flip</button>
+                  </form>
+                  <form style="display:inline" method="post" action="/staff/manage/accounts/{{ table }}/{{ r.uid }}/delete" onsubmit="return confirm('axe {{ r.email }}?')">
+                    <button class="btn danger" style="padding:4px 8px">axe</button>
+                  </form>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="4" class="hint">nobody here yet</td></tr>
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}

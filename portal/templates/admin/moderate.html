@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}moderate · {{ room.name }}{% endblock %}
+
+{% block body %}
+  <div class="wrap" style="padding-top:24px;max-width:760px;padding-bottom:30px">
+    <p><a href="/staff/projects/{{ sub.id }}">← back</a></p>
+    <p class="pixel-label">moderation // logged</p>
+    <h1 class="section-title">fix {{ room.name }}'s ship</h1>
+    <form method="post" class="panel">
+      <label class="f">title</label>
+      <input type="text" name="title" value="{{ sub.title }}">
+      <label class="f">tagline</label>
+      <input type="text" name="tagline" value="{{ sub.tagline }}">
+      <label class="f">github</label>
+      <input type="url" name="github_url" value="{{ sub.github_url }}">
+      <label class="f">demo</label>
+      <input type="url" name="demo_url" value="{{ sub.demo_url }}">
+      <label class="f">deck mode</label>
+      <label>
+        <input type="radio" name="presentation_type" value="file" {% if sub.presentation_type=='file' %}checked{% endif %} style="width:auto">
+        file (team uploads)
+      </label>
+      <label>
+        <input type="radio" name="presentation_type" value="link" {% if sub.presentation_type!='file' %}checked{% endif %} style="width:auto">
+        link
+      </label>
+      <label class="f">deck link</label>
+      <input type="url" name="presentation_link" value="{{ sub.presentation_link }}">
+      {% if sub.presentation_file %}
+        <p class="hint">stored file: <a href="{{ sub.presentation_file }}">download ↓</a> (switching to link clears it)</p>
+      {% endif %}
+      <label class="f">tech (comma)</label>
+      <input type="text" name="tech_stack" value="{{ sub.tech_stack|join(', ') }}">
+      <label class="f">crew (comma)</label>
+      <input type="text" name="members" value="{{ sub.members|join(', ') }}">
+      <label class="f">problem</label>
+      <textarea name="problem_statement" rows="3" style="min-height:70px">{{ sub.problem_statement }}</textarea>
+      <label class="f">description (markdown)</label>
+      <textarea name="description" rows="10">{{ sub.description }}</textarea>
+      <label class="f">status</label>
+      <select name="status">
+        <option value="draft" {% if sub.status=='draft' %}selected{% endif %}>draft</option>
+        <option value="final" {% if sub.status=='final' %}selected{% endif %}>final</option>
+      </select>
+      <div class="btnrow">
+        <button class="btn danger" type="submit">save as staff (audited)</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

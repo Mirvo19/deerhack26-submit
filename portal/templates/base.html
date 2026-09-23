@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ event_name }} - submit{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=BBH+Bartle&family=Bitcount+Single:wght@400;600&family=Google+Sans+Flex:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/tokens.css">
+  <link rel="stylesheet" href="/static/css/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/motion@11/dist/motion.js"></script>
+  <script src="/static/js/motion-utils.js" defer></script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="dh-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="deerhack home">
+        <span class="brand-badge" data-entrance>
+          <svg viewBox="0 0 122 122" fill="none" aria-hidden="true">
+            <circle cx="61" cy="61" r="61" fill="black" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M40.4 12c4.1 0 7.4 3.4 7.4 7.6s-3.3 7.6-7.4 7.6S33 23.8 33 19.6 36.3 12 40.4 12Zm0 3.5c-2.2 0-4 1.8-4 4.1s1.8 4.1 4 4.1 4-1.8 4-4.1-1.8-4.1-4-4.1Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M59.8 12c4.1 0 7.5 3.4 7.5 7.6s-3.4 7.6-7.5 7.6-7.4-3.4-7.4-7.6S55.7 12 59.8 12Zm0 3.5c-2.2 0-4 1.8-4 4.1s1.8 4.1 4 4.1 4-1.8 4-4.1-1.8-4.1-4-4.1Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M79.3 12c4.1 0 7.4 3.4 7.4 7.6s-3.3 7.6-7.4 7.6-7.5-3.4-7.5-7.6S75.2 12 79.3 12Zm0 3.5c-2.2 0-4 1.8-4 4.1s1.8 4.1 4 4.1 4-1.8 4-4.1-1.8-4.1-4-4.1Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M43.6 31.3l.3 19.1 13.1-9.1V24h6v13.2h10l3.7 1.5V24h6v27.3c4.8-3.2 11.7-10.3 14.3-8.5 4.3 7.6-2.3 16.1-14.3 15.8v51.3c-16.6.3-36.3 0-45.1 0 0-11.5 20.5-18.2 26.8-26.7H43c-6.2 0-6.4-7.6-5.7-11.4l26.8-19c4.3-.9 7.4-1.5 12.3-1.5.3-5-4-7.6-6.3-7.9-1.4 0-3.3-.7-6 1.2C55.2 49.4 37.3 62 37.3 62.1V24h6.3v7.3ZM67.3 63C65.1 63 63.3 64.8 63.3 67.1C63.3 69.4 65.1 71.2 67.3 71.2C69.5 71.2 71.3 69.4 71.3 67.1C71.3 64.8 69.5 63 67.3 63Z" fill="white" />
+          </svg>
+        </span>
+        <span class="brand-text">
+          <span class="brand-name">deer hack</span>
+          <span class="brand-sub">school edition 2026</span>
+        </span>
+      </a>
+      <nav class="dh-nav" aria-label="staff">
+        {% if staff %}
+          <span class="role-tag">{{ role }}</span>
+          {% if role in ('judge','mentor','admin','superadmin') %}
+            <a href="/staff/projects">projects</a>
+          {% endif %}
+          {% if role in ('admin','superadmin') %}
+            <a href="/staff/manage/rooms">manage</a>
+          {% endif %}
+          {% if role == 'superadmin' %}
+            <a href="/staff/manage/accounts">accounts</a>
+            <a href="/staff/manage/audit">audit</a>
+          {% endif %}
+          <a href="/staff/logout">log out</a>
+        {% endif %}
+      </nav>
+      {% if staff %}
+        <button class="mnav-btn" id="mnavBtn" aria-expanded="false" aria-controls="mnavPanel" aria-label="staff menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      {% endif %}
+    </div>
+    {% if staff %}
+      <div class="mnav-panel" id="mnavPanel" hidden>
+        <div class="wrap">
+          <span class="role-tag">{{ role }}</span>
+          {% if role in ('judge','mentor','admin','superadmin') %}
+            <a href="/staff/projects">projects</a>
+          {% endif %}
+          {% if role in ('admin','superadmin') %}
+            <a href="/staff/manage/rooms">manage</a>
+          {% endif %}
+          {% if role == 'superadmin' %}
+            <a href="/staff/manage/accounts">accounts</a>
+            <a href="/staff/manage/audit">audit</a>
+          {% endif %}
+          <a href="/staff/logout">log out</a>
+        </div>
+      </div>
+    {% endif %}
+  </header>
+  <main>
+    <div class="wrap">
+      {% with msgs = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in msgs %}
+          <div class="flash {{ cat }}" data-entrance>{{ msg }}</div>
+        {% endfor %}
+      {% endwith %}
+    </div>
+    {% block body %}{% endblock %}
+  </main>
+  <footer class="dh-footer">
+    <div class="wrap">
+      <span class="pixel-label">deerhack // school edition 2026</span>
+      <span>live build-day tool - locks at the posted deadline.</span>
+    </div>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
