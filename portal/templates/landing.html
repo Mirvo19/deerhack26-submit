@@ -28,12 +28,12 @@
             <button class="btn ghost" id="lastX" aria-label="dismiss" style="padding:2px 10px;float:right">×</button>
             <span class="hint" id="lastText"></span>
           </div>
+          <p class="countdown" data-entrance>lock: {{ deadline|npt }}</p>
         </div>
         <figure class="hero-art" data-entrance>
           <img src="/static/img/group-134.png?v={{ asset_v }}" alt="laptop showing hackathon code">
         </figure>
       </div>
-      <p class="countdown" data-entrance>lock: {{ deadline|npt }}</p>
     </div>
   </section>
   <div class="wrap" style="padding-top:28px;padding-bottom:20px">
